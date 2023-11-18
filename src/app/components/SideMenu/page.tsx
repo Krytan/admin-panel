@@ -54,12 +54,16 @@ const closedMixin = (theme: Theme): CSSObject => ({
 
 const SideMenu = () => {
 
-  let menuRouteList = ["calendar", "Submission","profile", ""];
+  let menuRouteList = ["calendar", "submission","profile", ""];
 let menuListTranslations = ["Calendar", "Submission", "Profile",  "Sign Out"];
 let menuListIcons = [
+  // eslint-disable-next-line react/jsx-key
   <CalendarMonthIcon />,
-  <TaskIcon/>,
+  // eslint-disable-next-line react/jsx-key
+  <TaskIcon />,
+  // eslint-disable-next-line react/jsx-key
   <Person2Icon />,
+  // eslint-disable-next-line react/jsx-key
   <ExitToAppIcon />,
 ];
 
@@ -70,13 +74,18 @@ if (session?.user.role_id == 1)
   menuRouteList = ["calendar","opgave","data", "profile", "settings", ""];
 
   menuListTranslations = ["calendar","opgave","Data", "Profile", "Settings", "Sign Out"];
-  
   menuListIcons = [
-<CalendarMonthIcon/>,
+// eslint-disable-next-line react/jsx-key
+    <CalendarMonthIcon />,
+    // eslint-disable-next-line react/jsx-key
 <TaskIcon/>,
-  <EqualizerIcon />,
-  <Person2Icon />,
-  <Settings />,
+  // eslint-disable-next-line react/jsx-key
+    <EqualizerIcon />,
+  // eslint-disable-next-line react/jsx-key
+    <Person2Icon />,
+  // eslint-disable-next-line react/jsx-key
+    <Settings />,
+  // eslint-disable-next-line react/jsx-key
   <ExitToAppIcon />,
 
   ];
