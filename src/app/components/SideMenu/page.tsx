@@ -54,10 +54,11 @@ const closedMixin = (theme: Theme): CSSObject => ({
 
 const SideMenu = () => {
 
-  let menuRouteList = ["calendar", "profile", ""];
-let menuListTranslations = ["calendar", "Profile", "Sign Out"];
+  let menuRouteList = ["calendar", "Submission","profile", ""];
+let menuListTranslations = ["Calendar", "Submission", "Profile",  "Sign Out"];
 let menuListIcons = [
-<CalendarMonthIcon/>,
+  <CalendarMonthIcon />,
+  <TaskIcon/>,
   <Person2Icon />,
   <ExitToAppIcon />,
 ];
