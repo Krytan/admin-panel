@@ -1,4 +1,4 @@
-export default async function createUserSubmissions(submission: any) {
+export default async function createUserSubmission(submission: any) {
     try {
     const response = await fetch("https://localhost:7136/api/UserSubmission", {
       method: 'POST',

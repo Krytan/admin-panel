@@ -20,4 +20,3 @@ export default async function updateUserSubmission(userSubmissions: any, id: num
 }
   
   }
-  

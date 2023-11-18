@@ -1,5 +1,7 @@
 "use client";
 import * as React from 'react';
+import React { useEffect, useState } from "react";
+
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
@@ -32,8 +34,50 @@ import {
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { redirect } from 'next/navigation';
+import { getUserById, updateUser } from "@/app/lib/user";
+import { updateUserSubmission } from "@/app/lib/submissions/updateSubmissions";
+import { getUserSubmissions } from "@/app/lib/submissions/getSubmissions";
+import { createUserSubmission } from "@/app/lib/submissions/createSubmissions";
+import { updateUserSubmission } from "@/app/lib/submissions/updateSubmissions";
+import { getUserSubmissionsById } from "@/app/lib/submissions/getSubmissionById";
 
 
+const submission = () => { 
+  const { data: session, status } = useSession();
+  const [openError, setOpenError] = React.useState(false);
+  const [openSuccess, setOpenSuccess] = React.useState(false);
+  // Use state to manage when to render the component
+  const [isReady, setIsReady] = useState(false);
+
+  const [formData, setFormData] = useState({
+    submission_text = "",
+    submission_date = ""
+  });
+
+  useEffect(() => {
+
+    const fetchData = async () => {
+
+      try {
+        const usersubmission = await getUserById(session?.user.user_id as number);
+        const profile = await getProfileById(session?.user.user_id as number);
+
+        setFormData({
+          firstName: profile.name,
+          lastName: profile.last_name,
+          email: user.email,
+          phone: profile.phone,
+          date_of_birth: profile.date_of_birth,
+          address: profile.address,
+          gender: profile.gender_id,
+          confirmPassword: "",
+        });
+      } catch (error) {
+        // Handle error fetching data
+      }
+  };
+};
+export default submission;
 
 const roles = ['Market', 'Finance', 'Development'];
 const randomRole = () => {
