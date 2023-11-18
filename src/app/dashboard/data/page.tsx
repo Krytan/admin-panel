@@ -331,6 +331,7 @@ export default function FullFeaturedCrudGrid() {
 
         if (isInEditMode) {
           return [
+            // eslint-disable-next-line react/jsx-key
             <GridActionsCellItem
               icon={<SaveIcon />}
               label="Save"
@@ -339,6 +340,7 @@ export default function FullFeaturedCrudGrid() {
               }}
               onClick={handleSaveClick(id)}
             />,
+            // eslint-disable-next-line react/jsx-key
             <GridActionsCellItem
               icon={<CancelIcon />}
               label="Cancel"
@@ -350,6 +352,7 @@ export default function FullFeaturedCrudGrid() {
         }
 
         return [
+          // eslint-disable-next-line react/jsx-key
           <GridActionsCellItem
             icon={<EditIcon />}
             label="Edit"
@@ -357,6 +360,7 @@ export default function FullFeaturedCrudGrid() {
             onClick={handleEditClick(id)}
             color="inherit"
           />,
+          // eslint-disable-next-line react/jsx-key
           <GridActionsCellItem
             icon={<DeleteIcon />}
             label="Delete"
