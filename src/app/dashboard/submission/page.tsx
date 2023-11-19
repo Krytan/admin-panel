@@ -1,403 +1,159 @@
 "use client";
-import * as React from 'react';
-import React { useEffect, useState } from "react";
-
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Close';
-import TextField from '@mui/material/TextField';
-import Autocomplete from '@mui/material/Autocomplete';
-import scss from "./submission.module.scss";
 import {
-  GridRowsProp,
-  GridRowModesModel,
-  GridRowModes,
-  DataGrid,
-  GridColDef,
-  GridToolbarContainer,
-  GridActionsCellItem,
-  GridEventListener,
-  GridRowId,
-  GridRowModel,
-  GridRowEditStopReasons,
-} from '@mui/x-data-grid';
+  updateSchedule,
+  createSchedule,
+  deleteSchedule,
+  getSchedule,
+  getScheduleById,
+} from "@/app/lib/Schedule";
+import { Scheduler } from "@aldabil/react-scheduler";
 import {
-  randomCreatedDate,
-  randomTraderName,
-  randomId,
-  randomArrayItem,
-} from '@mui/x-data-grid-generator';
-import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
-import { redirect } from 'next/navigation';
-import { getUserById, updateUser } from "@/app/lib/user";
-import { updateUserSubmission } from "@/app/lib/submissions/updateSubmissions";
-import { getUserSubmissions } from "@/app/lib/submissions/getSubmissions";
-import { createUserSubmission } from "@/app/lib/submissions/createSubmissions";
-import { updateUserSubmission } from "@/app/lib/submissions/updateSubmissions";
-import { getUserSubmissionsById } from "@/app/lib/submissions/getSubmissionById";
+  EventActions,
+  ProcessedEvent,
+  SchedulerRef,
+} from "@aldabil/react-scheduler/types";
+import { Schedule } from "@mui/icons-material";
+import { Console } from "console";
+import { useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
-
-const submission = () => { 
+const Dashboard = () => {
   const { data: session, status } = useSession();
-  const [openError, setOpenError] = React.useState(false);
-  const [openSuccess, setOpenSuccess] = React.useState(false);
+  const checkin = !!session;
+
   // Use state to manage when to render the component
   const [isReady, setIsReady] = useState(false);
-
-  const [formData, setFormData] = useState({
-    submission_text = "",
-    submission_date = ""
-  });
+  const [EVENTS, setEVENTS] = useState([]);
 
   useEffect(() => {
 
     const fetchData = async () => {
-
-      try {
-        const usersubmission = await getUserById(session?.user.user_id as number);
-        const profile = await getProfileById(session?.user.user_id as number);
-
-        setFormData({
-          firstName: profile.name,
-          lastName: profile.last_name,
-          email: user.email,
-          phone: profile.phone,
-          date_of_birth: profile.date_of_birth,
-          address: profile.address,
-          gender: profile.gender_id,
-          confirmPassword: "",
-        });
-      } catch (error) {
-        // Handle error fetching data
-      }
-  };
-};
-export default submission;
-
-const roles = ['Market', 'Finance', 'Development'];
-const randomRole = () => {
-  return randomArrayItem(roles);
-};
-
-const options = ['A2', 'A1'];
-const options2 = ['Dansk', 'Matematik'];
-
-const initialRows: GridRowsProp = [
-  {
-    id: randomId(),
-    name: randomTraderName(),
-    age: 25,
-    joinDate: randomCreatedDate(),
-    role: randomRole(),
-  },
-  {
-    id: randomId(),
-    name: randomTraderName(),
-    age: 36,
-    joinDate: randomCreatedDate(),
-    role: randomRole(),
-  },
-  {
-    id: randomId(),
-    name: randomTraderName(),
-    age: 19,
-    joinDate: randomCreatedDate(),
-    role: randomRole(),
-  },
-  {
-    id: randomId(),
-    name: randomTraderName(),
-    age: 28,
-    joinDate: randomCreatedDate(),
-    role: randomRole(),
-  },
-  {
-    id: randomId(),
-    name: randomTraderName(),
-    age: 23,
-    joinDate: randomCreatedDate(),
-    role: randomRole(),
-  },
-];
-
-interface EditToolbarProps {
-  setRows: (newRows: (oldRows: GridRowsProp) => GridRowsProp) => void;
-  setRowModesModel: (
-    newModel: (oldModel: GridRowModesModel) => GridRowModesModel,
-  ) => void;
-}
-
-function EditToolbar(props: EditToolbarProps) {
-  const { setRows, setRowModesModel } = props;
-
-  const handleClick = () => {
-    const id = randomId();
-    setRows((oldRows) => [...oldRows, { id, name: '', age: '', isNew: true }]);
-    setRowModesModel((oldModel) => ({
-      ...oldModel,
-      [id]: { mode: GridRowModes.Edit, fieldToFocus: 'name' },
-    }));
-  };
-
-  return (
-    <GridToolbarContainer>
-      <Button color="primary" startIcon={<AddIcon />} onClick={handleClick}>
-        Add record
-      </Button>
-    </GridToolbarContainer>
-  );
-}
-
-export default function FullFeaturedCrudGrid() {
-
-    const [value, setValue] = React.useState<string | null>(options[0]);
-    const [value2, setValue2] = React.useState<string | null>(options2[0]);
-  const [inputValue, setInputValue] = React.useState('');
-  const [inputValue2, setInputValue2] = React.useState('');
-    
-  const [rows, setRows] = React.useState(initialRows);
-  const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>({});
-
-
-    const {data: session, status} = useSession();
-    
-      // Use state to manage when to render the component
-    const [isReady, setIsReady] = useState(false);
-  
-    useEffect(() => {
       if (status === "authenticated") {
         setIsReady(true);
-      } else if (status === "unauthenticated") {
-        redirect("/auth/signin");
+        const schedules = await getSchedule();
+        console.log(schedules);
+        let events = schedules.map((schedule: any) => ({
+          event_id: schedule.schedule_id,
+          title: schedule.subject_name,
+          start: new Date(schedule.start_time),
+          end: new Date(schedule.end_time),
+        }));
+
+        console.log("test: ", events);
+        setEVENTS(events);
+
       }
-    }, [status]);
-  
-    // Only render the profile page if isReady is true
-    if (!isReady) {
-      return null;
+    };
+
+    if (status === "authenticated") {
+      setIsReady(true);
+      fetchData();
+    } else if (status === "unauthenticated") {
+      redirect("/auth/signin");
     }
+    //console.log(rows[0]);
+  }, [status]);
 
-  const handleRowEditStop: GridEventListener<'rowEditStop'> = (params, event) => {
-    if (params.reason === GridRowEditStopReasons.rowFocusOut) {
-      event.defaultMuiPrevented = true;
-    }
-  };
+  // Only render the profile page if isReady is true
+  if (!isReady) {
+    return null;
+  }
 
-  const handleEditClick = (id: GridRowId) => () => {
-    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
-  };
+  const handleDeleteClick = async (deletedId: string): Promise<string> => {
+    console.log("here: ", deletedId);
+    deleteSchedule(parseInt(deletedId));
 
-  const handleSaveClick = (id: GridRowId) => () => {
-    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
-  };
-
-  const handleDeleteClick = (id: GridRowId) => () => {
-    setRows(rows.filter((row) => row.id !== id));
-  };
-
-  const handleCancelClick = (id: GridRowId) => () => {
-    setRowModesModel({
-      ...rowModesModel,
-      [id]: { mode: GridRowModes.View, ignoreModifications: true },
+    return new Promise((res, rej) => {
+      res(deletedId);
     });
+  };
 
-    const editedRow = rows.find((row) => row.id === id);
-    if (editedRow!.isNew) {
-      setRows(rows.filter((row) => row.id !== id));
+  const handleSaveClick = async (
+    event: ProcessedEvent,
+    action: EventActions
+  ): Promise<ProcessedEvent> => {
+    const currentDate = new Date();
+    const currentDayOfWeek = currentDate.getDay();
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const currentDayName = daysOfWeek[currentDayOfWeek];
+
+    const userData = {
+      subject_id: 1,
+      day_of_week: currentDayName,
+      subject_name: event.title,
+      start_time: event.start,
+      end_time: event.end,
+      class_id: 1,
+    };
+
+    let lastEventId: 1;
+
+    if (action === "edit") {
+      const updateData = await getScheduleById(event.event_id as number);
+
+      const newData = {
+        class_id: updateData.class_id,
+        subject_id: updateData.subject_id,
+        day_of_week: updateData.day_of_week,
+        subject_name: event.title,
+        start_time: event.start,
+        end_time: event.end,
+      };
+
+      console.log("work: ", newData);
+
+      updateSchedule(newData, event.event_id as number);
+    } else if (action === "create") {
+
+      await createSchedule(userData)
+
+      const schedules: any[] = await getSchedule();
+
+      if (schedules.length > 0) {
+        // Extract the last event_id
+        lastEventId = await schedules[schedules.length - 1].schedule_id;
+  
+        // lastEventId as needed
+        console.log("Last Event ID:", lastEventId);
+      }
+
+
     }
+
+
+
+    return new Promise( (res, rej) => {
+          res({
+            ...event,
+            event_id: event.event_id || lastEventId,
+          });
+    });
   };
-
-  const processRowUpdate = (newRow: GridRowModel) => {
-    const updatedRow = { ...newRow, isNew: false };
-    setRows(rows.map((row) => (row.id === newRow.id ? updatedRow : row)));
-    return updatedRow;
-  };
-
-  const handleRowModesModelChange = (newRowModesModel: GridRowModesModel) => {
-    setRowModesModel(newRowModesModel);
-  };
-
-  const columns: GridColDef[] = [
-    { field: 'name', headerName: 'Name', width: 180, editable: true },
-    {
-      field: 'age',
-      headerName: 'Age',
-      type: 'number',
-      width: 80,
-      align: 'left',
-      headerAlign: 'left',
-      editable: true,
-    },
-    {
-      field: 'joinDate',
-      headerName: 'Join date',
-      type: 'date',
-      width: 180,
-      editable: true,
-    },
-    {
-      field: 'role',
-      headerName: 'Department',
-      width: 220,
-      editable: true,
-      type: 'singleSelect',
-      valueOptions: ['Market', 'Finance', 'Development'],
-    },
-    {
-      field: 'actions',
-      type: 'actions',
-      headerName: 'Actions',
-      width: 100,
-      cellClassName: 'actions',
-      getActions: ({ id }) => {
-        const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
-
-        if (isInEditMode) {
-          return [
-            // eslint-disable-next-line react/jsx-key
-            <GridActionsCellItem
-              icon={<SaveIcon />}
-              label="Save"
-              sx={{
-                color: 'primary.main',
-              }}
-              onClick={handleSaveClick(id)}
-            />,
-            // eslint-disable-next-line react/jsx-key
-            <GridActionsCellItem
-              icon={<CancelIcon />}
-              label="Cancel"
-              className="textPrimary"
-              onClick={handleCancelClick(id)}
-              color="inherit"
-            />,
-          ];
-        }
-
-        return [
-          // eslint-disable-next-line react/jsx-key
-          <GridActionsCellItem
-            icon={<EditIcon />}
-            label="Edit"
-            className="textPrimary"
-            onClick={handleEditClick(id)}
-            color="inherit"
-          />,
-          // eslint-disable-next-line react/jsx-key
-          <GridActionsCellItem
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={handleDeleteClick(id)}
-            color="inherit"
-          />,
-        ];
-      },
-    },
-  ];
 
   return (
-    <><h1>Opgave</h1>
-
-<div>
-      <div>{`Klasse: ${value !== null ? `'${value}'` : 'null'}`}</div>
-      <div>{`Fag: '${inputValue}'`}</div>
-      <br />
-      <div className={scss.inputsheader}>
-      <Autocomplete
-        value={value}
-        onChange={(event: any, newValue: string | null) => {
-          setValue(newValue);
-        }}
-        inputValue={inputValue}
-        onInputChange={(event, newInputValue) => {
-          setInputValue(newInputValue);
-        }}
-        id="controllable-states-demo"
-        options={options}
-        sx={{ width: 300 }}
-        renderInput={(params) => <TextField {...params} label="Klasse" />}
-      />
-      <Autocomplete
-        value={value2}
-        onChange={(event: any, newValue2: string | null) => {
-          setValue2(newValue2);
-        }}
-        inputValue={inputValue2}
-        onInputChange={(event, newInputValue2) => {
-          setInputValue2(newInputValue2);
-        }}
-        id="controllable-states-demo"
-        options={options2}
-        sx={{ width: 300 }}
-        renderInput={(params) => <TextField {...params} label="Fag" />}
-      />
-      </div>
-    </div>
-
-    <Box
-          sx={{
-              height: 500,
-              width: '100%',
-              '& .actions': {
-                  color: 'text.secondary',
-              },
-              '& .textPrimary': {
-                  color: 'text.primary',
-              },
-          }}
-      >
-          <DataGrid
-              rows={rows}
-              columns={columns}
-              editMode="row"
-              rowModesModel={rowModesModel}
-              onRowModesModelChange={handleRowModesModelChange}
-              onRowEditStop={handleRowEditStop}
-              processRowUpdate={processRowUpdate}
-              slots={{
-                  toolbar: EditToolbar,
-              }}
-              slotProps={{
-                  toolbar: { setRows, setRowModesModel },
-              }} />
-      </Box>
-
-      <h1>Aflevering</h1>
-
-      <Box
-          sx={{
-              height: 500,
-              width: '100%',
-              '& .actions': {
-                  color: 'text.secondary',
-              },
-              '& .textPrimary': {
-                  color: 'text.primary',
-              },
-          }}
-      >
-          <DataGrid
-              rows={rows}
-              columns={columns}
-              editMode="row"
-              rowModesModel={rowModesModel}
-              onRowModesModelChange={handleRowModesModelChange}
-              onRowEditStop={handleRowEditStop}
-              processRowUpdate={processRowUpdate}
-              slots={{
-                  toolbar: EditToolbar,
-              }}
-              slotProps={{
-                  toolbar: { setRows, setRowModesModel },
-              }} />
-      </Box>
-      
-      </>
-      
+    <Scheduler
+      view="week"
+      month={{
+        weekDays: [0, 1, 2, 3, 4, 5],
+        weekStartOn: 6,
+        startHour: 8,
+        endHour: 17,
+        navigation: false,
+        disableGoToDay: false,
+      }}
+      events={EVENTS}
+      onConfirm={handleSaveClick}
+      onDelete={handleDeleteClick}
+    />
   );
-}
+};
+export default Dashboard;
